@@ -7,4 +7,4 @@ exports.task = task.task;
 exports.begin = task.begin; 
 exports.perform = task.perform;
 exports.hosts = host.hosts;
-exports.host = host.host
+exports.host = host.host;
