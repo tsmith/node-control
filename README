@@ -106,8 +106,18 @@ The node-control module consists of the control.js file and the lib
 subdirectory with submodules that make up the various parts of node-control,
 which are all just .js files. You should be able to clone the git repository or
 download the files directly and either put them in your current working
-directory or your node library and require them per usual Node require
+directory or your node require path and require control.js per usual Node require
 patterns.
+
+node-control is also available as an npm package:
+
+npm install control
+
+
+If you use the npm package or put the module in your node require path
+manually, your require statement for control becomes:
+
+var control = require('control');
 
 
 
