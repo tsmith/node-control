@@ -83,7 +83,7 @@ task('deploy', 'Deploy my app', function (host, release) {
         remoteAppDir = path.join(remoteDir, 'myapp');
     host.scp(release, remoteDir, function () {
         host.ssh('tar xzvf ' + remotePath + ' -C ' + remoteDir, function () {
-            host.ssh('cd ' + remoteAppDir + '; node myapp.js'); 
+            host.ssh("sh -c 'cd " + remoteAppDir + " && node myapp.js'"); 
         });
     });
 });
