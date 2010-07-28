@@ -240,7 +240,7 @@ one of the arguments:
     perform('anothertask', host, function () {
 
 
-Tasks that support asynchronous performance should call the callbck function
+Tasks that support asynchronous performance should call the callback function
 when done doing their own work. For example:
 
 task('anothertask', 'My other task description', function (host, callback) {
