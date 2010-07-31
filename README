@@ -17,7 +17,7 @@ QUICK EXAMPLE
 To get the current date from the three machines listed in the 'mycluster'
 config task as the 'mylogin' user with a single command:
 
-var control = require('./control'),
+var control = require('./node-control'),
     task = control.task;
 
 task('mycluster', 'Config for my cluster', function () {
@@ -102,20 +102,16 @@ custom deployment strategy for your application or framework.
 
 INSTALLATION
 
-The node-control module consists of the control.js file and the lib
-subdirectory with submodules that make up the various parts of node-control,
-which are all just .js files. You should be able to clone the git repository or
-download the files directly and either put them in your current working
-directory or your node require path and require control.js per usual Node require
-patterns.
+Clone this repostiroy with git or download the latest version using the GitHub
+repository Downloads link and use as a standard Node module by requiring the
+node-control directory.
 
-node-control is also available as an npm package:
+If you use npm:
 
 npm install control
 
 
-If you use the npm package or put the module in your node require path
-manually, your require statement for control becomes:
+If you install the npm package, use this require statement:
 
 var control = require('control');
 
@@ -211,7 +207,7 @@ BEGIN
 To execute the tasks using a tasks file, use the begin() method at the
 bottom of the tasks file:
 
-var control = require('./control');
+var control = require('./node-control');
 ... // Define tasks
 control.begin();
 
@@ -227,7 +223,7 @@ PERFORMING MULTIPLE TASKS
 A task can call other tasks using perform() and optionally pass arguments to
 them:
 
-var perform = require('./control').perform;
+var perform = require('./node-control').perform;
 ...
 task('mytask', 'My task description', function (host, argument) {
     perform('anothertask', host, argument);
@@ -355,7 +351,25 @@ myhost1.mydomain.com.
 
 
 
+SSH
+
+To avoid repeatedly entering passwords across possibly many hosts, use standard
+ssh keypair authentication. 
+
+Each host.ssh() call requires a new connecton to the host. To configure ssh to
+reuse a single connecton, place this:
+
+Host *
+ControlMaster auto 
+ControlPath ~/.ssh/master-%r@%h:%p
+
+
+In your ssh config file (create if it does not exist):
+
+~/.ssh/config
+
+
+
 FEEDBACK
 
-Feedback, questions, corrections, and suggestions welcome at
-node@thomassmith.com or the node.js mailing list.
+Feedback welcome at node@thomassmith.com or the Node mailing list.

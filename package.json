@@ -2,5 +2,5 @@
   "description" : "Scripted asynchronous control of remote machines in parallel via ssh",
   "version" : "0.1.2",
   "author" : "Thomas Smith <node@thomassmith.com>",
-  "main" : "./control"
+  "main" : "./lib"
 }
