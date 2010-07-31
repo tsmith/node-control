@@ -102,8 +102,8 @@ custom deployment strategy for your application or framework.
 
 INSTALLATION
 
-Clone this repostiroy with git or download the latest version using the GitHub
-repository Downloads link and use as a standard Node module by requiring the
+Clone this repository with git or download the latest version using the GitHub
+repository Downloads link. Then use as a standard Node module by requiring the
 node-control directory.
 
 If you use npm:
