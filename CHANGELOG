@@ -1,0 +1,4 @@
+0.1.3
+- Add sshOptions to host config to allow passing options to ssh on ssh()
+- Add -r flag to scp() invocations to make useful for both files and directories
+- Tighten permissions on log file so readable only to local control user 
