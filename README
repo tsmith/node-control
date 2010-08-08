@@ -38,9 +38,9 @@ task('date', 'Get date', function (host) {
 control.begin();
 
 
-If saved in a file named 'mycontrols.js', run with:
+If saved in a file named 'mycontroller.js', run with:
 
-node mycontrols.js mycluster date
+node mycontroller.js mycluster date
 
 
 Each machine is contacted in parallel, date is executed, and the output from
@@ -90,7 +90,7 @@ task('deploy', 'Deploy my app', function (host, release) {
 
 Execute as follows, for example:
 
-node mycontrols.js mycluster deploy ~/myapp/releases/myapp-1.0.tgz
+node mycontroller.js mycluster deploy ~/myapp/releases/myapp-1.0.tgz
 
 
 A full deployment solution would deal with shutting down the existing
@@ -124,7 +124,7 @@ remote operations. The first task is the config task, which must return an
 array of host objects. Each host object represents a single host and has its
 own set of properties. The hosts() method exported by control.js allows you to
 take a single object literal config and multiply it by an array of addresses to
-get a list of host objects that all (prototypically) inherit from the the same
+get a list of host objects that all (prototypically) inherit from the same
 config:
 
 task('mycluster', 'Config for my cluster', function () {
@@ -139,14 +139,14 @@ task('mycluster', 'Config for my cluster', function () {
 });
 
 
-Config tasks enable definition of resuable work tasks independent of the
+Config tasks enable definition of reusable work tasks independent of the
 machines they will control. For example, if you have a staging environment with
 different machines than your production environment you can create two
 different config tasks returning different hosts, yet use the same deploy task:
 
-node mycontrols.js stage deploy ~/myapp/releases/myapp-1.0.tgz
+node mycontroller.js stage deploy ~/myapp/releases/myapp-1.0.tgz
 ... 
-node mycontrols.js production deploy ~/myapp/releases/myapp-1.0.tgz
+node mycontroller.js production deploy ~/myapp/releases/myapp-1.0.tgz
 
 
 
@@ -165,7 +165,7 @@ also provides the ssh and scp methods for communicating with the remote
 machine. 
 
 The ssh method takes one argument - the command to be executed on the
-remote machine. The scp method takes two arguments - the local filepath and the
+remote machine. The scp method takes two arguments - the local file path and the
 remote file path. 
 
 Both ssh and scp methods are asynchronous and can additionally take a callback
@@ -191,7 +191,7 @@ task('deploy', 'Deploy my app', function (host, release) {
 
 This command:
 
-node mycontrols.js stage deploy ~/myapp/releases/myapp-1.0.tgz
+node mycontroller.js stage deploy ~/myapp/releases/myapp-1.0.tgz
 
 
 Results in release = '~/myapp/releases/myapp-1.0.tgz'.
@@ -256,7 +256,7 @@ LIST TASKS
 
 To list all defined tasks with descriptions:
 
-node mycontrols.js list
+node mycontroller.js list
 
 
 
@@ -356,8 +356,8 @@ SSH
 To avoid repeatedly entering passwords across possibly many hosts, use standard
 ssh keypair authentication. 
 
-Each host.ssh() call requires a new connecton to the host. To configure ssh to
-reuse a single connecton, place this:
+Each host.ssh() call requires a new connection to the host. To configure ssh to
+reuse a single connection, place this:
 
 Host *
 ControlMaster auto 
