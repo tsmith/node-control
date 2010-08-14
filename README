@@ -256,7 +256,7 @@ LIST TASKS
 
 To list all defined tasks with descriptions:
 
-node mycontroller.js list
+node mycontroller.js mycluster list
 
 
 
