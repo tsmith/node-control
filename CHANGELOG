@@ -1,5 +1,7 @@
 0.1.6
 - Document sshOptions and reimplement to allow setting in config or host object
+- Remove undocumented host() method for setting up a single host from config
+- Add engines specfication to package.json for node >=0.1.99
 
 0.1.5
 - Remove errant console.log statement in ssh command
