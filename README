@@ -369,6 +369,20 @@ In your ssh config file (create if it does not exist):
 ~/.ssh/config
 
 
+To pass options to the ssh command when using ssh(), add the option or options
+as an array to the sshOptions property of the config, or concat the option or
+options to the host object sshOptions property prior to executing the command:
+
+    // Config task
+    config = {
+        user: 'mylogin',
+        sshOptions = [ '-2', '-p 44' ]
+    };
+
+    // Work task
+    host.sshOptions = host.sshOptions.concat('-v');
+
+
 
 FEEDBACK
 

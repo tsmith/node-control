@@ -1,3 +1,10 @@
+0.1.6
+- Document sshOptions and reimplement to allow setting in config or host object
+
+0.1.5
+- Remove errant console.log statement in ssh command
+- Log commands before launching subprocess instead of after
+
 0.1.4
 - Add sshOptions to host config to allow passing options to ssh on ssh()
 - Add -r flag to scp() invocations to make useful for both files and directories
