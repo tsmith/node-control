@@ -346,8 +346,20 @@ the host address so, for example:
 
 grep myhost1.mydomain.com hosts.log | less
 
+
 Would allow paging the log and seeing only lines pertaining to
 myhost1.mydomain.com.
+
+
+If you send something you do not want to get logged (like a password) in a
+command, use the log mask:
+
+host.logMask = secret;
+host.ssh('echo ' + secret + ' > file.txt');
+
+
+The console and command log file will show the masked text as asterisks instead
+of the actual text.
 
 
 

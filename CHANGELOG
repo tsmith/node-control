@@ -1,3 +1,6 @@
+0.1.7
+- Add host.logMask to allow masking things like passwords from command logging
+
 0.1.6
 - Document sshOptions and reimplement to allow setting in config or host object
 - Remove undocumented host() method for setting up a single host from config
