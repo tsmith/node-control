@@ -161,23 +161,38 @@ task('date', 'Get date', function (host) {
 
 
 The host object allows access to all the properties defined in the config and
-also provides the ssh and scp methods for communicating with the remote 
+also provides the ssh() and scp() methods for communicating with the remote 
 machine. 
 
-The ssh method takes one argument - the command to be executed on the
+The ssh() method takes one argument - the command to be executed on the
 remote machine. The scp method takes two arguments - the local file path and the
 remote file path. 
 
-Both ssh and scp methods are asynchronous and can additionally take a callback
-function that is executed once the ssh or scp operation is complete. This
-guarantees that the first operation completes before the next one begins on
-that host:
+Both ssh() and scp() methods are asynchronous and can additionally take a
+callback function that is executed once the ssh or scp operation is complete.
+This guarantees that the first operation completes before the next one begins
+on that host:
 
     host.scp(release, remoteDir, function () {
         host.ssh('tar xzvf ' + remotePath + ' -C ' + remoteDir, function () {
 
 
-Callbacks can be chained as far as necessary.
+You can chain callbacks as far as necessary.
+
+If a command returns a non-zero exit code, the scp() and ssh() methods will log
+the exit and exit code, but will not call the callback, ending any further
+operations on that host. This avoids doing further harm where a callback may
+assume a successful execution of a previous command. However, you can specify
+an exit callback that will receive the exit code if a non-zero exit occurs:
+
+function callback() { ... }
+function exitCallback(code) { ... }
+
+host.ssh('date', callback, exitCallback);
+
+
+You can make both callbacks the same callback function if you want to check the
+exit code and handle a non-zero exit within a single callback.
 
 
 
@@ -340,6 +355,7 @@ task('mycluster', 'Config for my cluster', function () {
     return control.hosts(config, addresses); 
 });
 
+
 Since each host gets its own log property, every host could conceivably have
 its own log fie. However, every line in the log file has a prefix that includes
 the host address so, for example: 
@@ -388,14 +404,62 @@ options to the host object sshOptions property prior to executing the command:
     // Config task
     config = {
         user: 'mylogin',
-        sshOptions = [ '-2', '-p 44' ]
+        sshOptions: [ '-2', '-p 44' ]
     };
 
     // Work task
     host.sshOptions = host.sshOptions.concat('-v');
 
 
+Use scpOptions in the same manner to pass options to the scp command when using
+scp().
+
+
+
+CONFIG TASK COMMAND LINE ARGUMENTS REWRITING
+
+Config tasks receive a reference to the array of remaining arguments on the
+command line after the config task name is removed. This allows config tasks
+to rewrite the command line arguments other than the config task name. Example:
+
+function configure(addresses) {
+    var config;
+    config = {
+        user: 'mylogin'
+    };
+    return control.hosts(config, addresses); 
+}
+
+task('mycluster', 'Config for my cluster', function () {
+    var addresses = [ 'a.mydomain.com',
+                      'b.mydomain.com',
+                      'c.mydomain.com' ];
+    return configure(addresses); 
+});
+
+task('myhost', 'Config for a single host from command line', function (args) {
+    return configure([args.shift()]); // From command line arguments rewriting
+});
+
+
+With this set of config tasks, if there is an ad hoc need to run certain tasks
+against a single machine in the cluster, but otherwise have identical
+configuration as when run as part of the cluster, the host name can be
+specified on the command line:
+
+node mycontroller.js myhost b.mydomain.com date a
+
+
+In that case, the myhost task receives as args:
+
+['b.mydomain.com', 'date', 'a']
+
+
+This is generally discouraged in favor of editing the config file as needed,
+but is available if config tasks need to have command line arguments or rewrite
+the work task name and its arguments on the fly.
+
 
 FEEDBACK
 
-Feedback welcome at node@thomassmith.com or the Node mailing list.
+Welcome at node@thomassmith.com or the Node mailing list.

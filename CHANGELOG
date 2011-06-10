@@ -1,3 +1,8 @@
+0.1.8
+- Add exit callbacks to host.ssh(), host.scp() for handling non-zero exit codes
+- Add scpOptions (like sshOptions)
+- Add config tasks command line arguments rewriting
+
 0.1.7
 - Add host.logMask to allow masking things like passwords from command logging
 
