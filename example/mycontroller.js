@@ -55,7 +55,10 @@ task('arbexit', 'Arbitrary exit', function (host, code) {
 });
 
 task('scp', 'Test scp options', function (host) {
-    host.scp(script, scpTest); 
+    var flag = host.scpOptions.pop();
+    host.scp(script, scpTest); // Quietly 
+    host.scpOptions.push(flag);
+    host.scp(script, scpTest); // Verbosely
 });
 
 task('clean', 'Remove file transferred in scp testing', function (host) {

@@ -398,8 +398,8 @@ In your ssh config file (create if it does not exist):
 
 
 To pass options to the ssh command when using ssh(), add the option or options
-as an array to the sshOptions property of the config, or concat the option or
-options to the host object sshOptions property prior to executing the command:
+as an array to the sshOptions property of the config, or modify the sshOptions
+property of the host on the fly:
 
     // Config task
     config = {
@@ -408,11 +408,10 @@ options to the host object sshOptions property prior to executing the command:
     };
 
     // Work task
-    host.sshOptions = host.sshOptions.concat('-v');
+    host.sshOptions.push('-v');
 
 
-Use scpOptions in the same manner to pass options to the scp command when using
-scp().
+Use scpOptions in the same manner for scp().
 
 
 
@@ -458,6 +457,7 @@ In that case, the myhost task receives as args:
 This is generally discouraged in favor of editing the config file as needed,
 but is available if config tasks need to have command line arguments or rewrite
 the work task name and its arguments on the fly.
+
 
 
 FEEDBACK

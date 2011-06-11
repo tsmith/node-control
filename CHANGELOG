@@ -1,3 +1,6 @@
+0.1.9
+- Init scpOptions as array if not configured so later logic can assume array 
+
 0.1.8
 - Add exit callbacks to host.ssh(), host.scp() for handling non-zero exit codes
 - Add scpOptions (like sshOptions)
