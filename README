@@ -14,8 +14,10 @@ machines simply need to have a standard sshd daemon running.
 
 QUICK EXAMPLE
 
-To get the current date from the three machines listed in the 'mycluster'
-config task as the 'mylogin' user with a single command:
+If you want to control remote machines from individual scripts without the
+tasks system, see QUICK EXAMPLE WITHOUT TASKS below. Otherwise, to get the
+current date from the three machines listed in the 'mycluster' config task as
+the 'mylogin' user with a single command:
 
 var control = require('./node-control'),
     task = control.task;
@@ -454,9 +456,36 @@ In that case, the myhost task receives as args:
 ['b.mydomain.com', 'date', 'a']
 
 
-This is generally discouraged in favor of editing the config file as needed,
+This is generally not necessary since you can edit the config file at any time,
 but is available if config tasks need to have command line arguments or rewrite
 the work task name and its arguments on the fly.
+
+
+
+QUICK EXAMPLE WITHOUT TASKS
+
+You can create scripts to run individually instead of through the tasks system
+by using hosts() to create an array of hosts objects and using the hosts
+objects directly:
+
+var control = require('../'),
+    config = {
+        user: 'mylogin'
+    },
+    addresses = [ 'a.mydomain.com',
+                  'b.mydomain.com',
+                  'c.mydomain.com' ],
+    hosts = control.hosts(config, addresses),
+    i, l, host;
+
+for (i = 0, l = hosts.length; i < l; i += 1) {
+    host = hosts[i];
+    host.ssh('date');
+}
+
+If saved in a file named 'mycontroller.js', execute with:
+
+node mycontroller.js
 
 
 
