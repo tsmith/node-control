@@ -1,4 +1,4 @@
-0.1.10
+0.2.0
 - Modified hosts objects implementation to prototype-based implementation
 - Semantic change from 'host' objects to 'controller' objects
 - Separated mass configuration from controller objects implementation
