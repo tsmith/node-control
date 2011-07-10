@@ -1,3 +1,13 @@
+0.1.10
+- Modified hosts objects implementation to prototype-based implementation
+- Semantic change from 'host' objects to 'controller' objects
+- Separated mass configuration from controller objects implementation
+- Tasks now get config object's id with id() as method instead of as property
+- Added controllers() configurator for array and JSON notation configuration
+- Deprecated hosts(), prints deprecation warning, will remove in future release
+- Changed setting of log path from log to logPath on hosts (now controllers)
+- Extended configuration, including deprecated, examples
+
 0.1.9
 - Init scpOptions as array if not configured so later logic can assume array 
 - Document and add example of hosts() usage without tasks system

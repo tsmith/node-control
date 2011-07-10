@@ -1,13 +1,13 @@
 /*global require, process, console */
 
 var control = require('../'),
-    config = {
-        user: process.env.USER
-    },
-    hosts = control.hosts(config, ['localhost']),
-    i, l, host;
+    shared = Object.create(control.controller),
+    i, l, controller, controllers;
 
-for (i = 0, l = hosts.length; i < l; i += 1) {
-    host = hosts[i];
-    host.ssh('date');
+shared.user = process.env.USER;
+controllers = control.controllers(['localhost', '127.0.0.1'], shared);
+
+for (i = 0, l = controllers.length; i < l; i += 1) {
+    controller = controllers[i];
+    controller.ssh('date');
 }

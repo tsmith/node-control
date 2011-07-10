@@ -1,170 +1,227 @@
 DESCRIPTION
 
-Use node-control to define ssh and scp tasks for system administration and code
-deployment and execute them on one or more machines simultaneously.  The
-implementation and API is completely asynchronous, allowing coding of tasks
-according to Node conventions and control of many machines in parallel.
-Strong logging creates a complete audit trail of commands executed on remote
-machines in logs easily analyzed by standard text manipulation tools. 
+Use node-control to define ssh and scp tasks for system administration or code
+deployment, then execute them on one or many machines simultaneously. Strong
+logging creates a complete audit trail of commands executed on remote machines
+in logs easily analyzed by standard text manipulation tools. 
 
-The only dependency is OpenSSH and Node on the local control machine. Remote
-machines simply need to have a standard sshd daemon running.
+node-control depends only on OpenSSH and Node on the local control machine.
+Remote machines simply need a standard sshd daemon.
 
 
 
 QUICK EXAMPLE
 
 If you want to control remote machines from individual scripts without the
-tasks system, see QUICK EXAMPLE WITHOUT TASKS below. Otherwise, to get the
-current date from the three machines listed in the 'mycluster' config task as
+tasks system, see QUICK EXAMPLE WITHOUT TASKS. Otherwise, to get the
+current date from the two machines listed in the 'mycluster' config task as
 the 'mylogin' user with a single command:
 
-var control = require('./node-control'),
+var control = require('control'),
     task = control.task;
 
 task('mycluster', 'Config for my cluster', function () {
-    var config, addresses;
-    config = {
-        user: 'mylogin'
-    };
-    addresses = [ 'a.mydomain.com',
-                  'b.mydomain.com',
-                  'c.mydomain.com' ];
-    return control.hosts(config, addresses); 
+    var controllers = [],
+        shared = Object.create(control.controller), // Extend prototype 
+        a, b;
+
+    shared.user = 'mylogin'; // Configure user common to all controllers
+
+    a = Object.create(shared); // Extend shared prototype
+    a.address = 'a.domain.com';
+    controllers.push(a);
+
+    b = Object.create(shared);
+    b.address = 'b.domain.com';
+    controllers.push(b);
+
+    return controllers;
 });
 
-task('date', 'Get date', function (host) {
-    host.ssh('date');
+task('date', 'Get date', function (controller) {
+    controller.ssh('date');
 });
 
 control.begin();
 
 
-If saved in a file named 'mycontroller.js', run with:
+If saved in a file named 'controls.js', run with:
 
-node mycontroller.js mycluster date
+node controls.js mycluster date
 
 
 Each machine is contacted in parallel, date is executed, and the output from
-the remote machine is printed to the console. Example output:
+the remote machine is printed to the console. Example console output:
 
  Performing mycluster
- Performing date for a.mydomain.com
-a.mydomain.com:mylogin:ssh: date
- Performing date for b.mydomain.com
-a.mydomain.com:mylogin:ssh: date
- Performing date for c.mydomain.com
-a.mydomain.com:mylogin:ssh: date
-a.mydomain.com:stdout: Sun Jul 18 13:30:50 UTC 2010
-a.mydomain.com:exit: 0
-b.mydomain.com:stdout: Sun Jul 18 13:30:50 UTC 2010
-c.mydomain.com:stdout: Sun Jul 18 13:30:50 UTC 2010
-b.mydomain.com:exit: 0
-c.mydomain.com:exit: 0
+ Performing date for a.domain.com
+a.domain.com:mylogin:ssh: date
+ Performing date for b.domain.com
+b.domain.com:mylogin:ssh: date
+a.domain.com:stdout: Sun Jul 18 13:30:50 UTC 2010
+b.domain.com:stdout: Sun Jul 18 13:30:51 UTC 2010
+a.domain.com:exit: 0
+b.domain.com:exit: 0
            
 
-Each line of output is labeled with the address of the host the command was
+Each line of output is labeled with the address of the machine the command was
 executed on. The actual command sent and the user used to send it is
 displayed. stdout and stderr output of the remote process is identified
-as well as the final exit code of the local ssh command. Each line also appears
-timestamped in a hosts.log file in the current working directory.
+as well as the final exit code of the local ssh command. Each command, stdout,
+stderr, and exit line also appears timestamped in a control.log file in the
+current working directory.
 
 
 
 CODE DEPLOYMENT EXAMPLE
 
-A task that will upload a local zip file containing a release of a node
-application to a remote machine, unzip it, and start the node application.
+A task that will upload a local compressed tar file containing a release of a
+node application to a remote machine, untar it, and start the node application.
 
 var path = require('path');
 
-task('deploy', 'Deploy my app', function (host, release) {
+task('deploy', 'Deploy my app', function (controller, release) {
     var basename = path.basename(release),
         remoteDir = '/apps/',
         remotePath = path.join(remoteDir, basename),
         remoteAppDir = path.join(remoteDir, 'myapp');
-    host.scp(release, remoteDir, function () {
-        host.ssh('tar xzvf ' + remotePath + ' -C ' + remoteDir, function () {
-            host.ssh("sh -c 'cd " + remoteAppDir + " && node myapp.js'"); 
+    controller.scp(release, remoteDir, function () {
+        controller.ssh('tar xzvf ' + remotePath + ' -C ' + remoteDir, 
+                function () {
+            controller.ssh("sh -c 'cd " + remoteAppDir + " && node myapp.js'"); 
         });
     });
 });
 
 Execute as follows, for example:
 
-node mycontroller.js mycluster deploy ~/myapp/releases/myapp-1.0.tgz
+node controls.js mycluster deploy ~/myapp/releases/myapp-1.0.tgz
 
 
-A full deployment solution would deal with shutting down the existing
-application and have different directory conventions. node-control does not
-assume a particular style or framework, but provides tools to build a
-custom deployment strategy for your application or framework.
+A full deployment solution would shut down the existing application and have
+different directory conventions. node-control does not assume a particular
+style or framework. It provides tools to build a custom deployment strategy for
+your application, system, or framework.
 
 
 
 INSTALLATION
 
-Clone this repository with git or download the latest version using the GitHub
-repository Downloads link. Then use as a standard Node module by requiring the
-node-control directory.
-
 If you use npm:
 
 npm install control
 
-
-If you install the npm package, use this require statement:
-
-var control = require('control');
+If you do not use npm, clone this repository with git or download the latest
+version using the GitHub repository Downloads link. Then use as a standard Node
+module by requiring the node-control directory.
 
 
 
 CONFIG TASKS
 
-In node-control, you always call two tasks on the command line when doing
-remote operations. The first task is the config task, which must return an
-array of host objects. Each host object represents a single host and has its
-own set of properties. The hosts() method exported by control.js allows you to
-take a single object literal config and multiply it by an array of addresses to
-get a list of host objects that all (prototypically) inherit from the same
-config:
-
-task('mycluster', 'Config for my cluster', function () {
-    var config, addresses;
-    config = {
-        user: 'mylogin'
-    };
-    addresses = [ 'a.mydomain.com',
-                  'b.mydomain.com',
-                  'c.mydomain.com' ];
-    return control.hosts(config, addresses); 
-});
-
+When using tasks, always identify two tasks on the command line for remote
+operations. The first task, the config task, must return an array of
+controller objects (objects that extend the control.controller prototype,
+described further in CONTROLLER OBJECTS). Each controller object in the
+array controls a single machine and optionally has its own set of properties. 
 
 Config tasks enable definition of reusable work tasks independent of the
 machines they will control. For example, if you have a staging environment with
 different machines than your production environment you can create two
-different config tasks returning different hosts, yet use the same deploy task:
+different config tasks returning different machines, yet use the same deploy
+work task:
 
-node mycontroller.js stage deploy ~/myapp/releases/myapp-1.0.tgz
+node controls.js stage deploy ~/myapp/releases/myapp-1.0.tgz
 ... 
-node mycontroller.js production deploy ~/myapp/releases/myapp-1.0.tgz
+node controls.js production deploy ~/myapp/releases/myapp-1.0.tgz
 
 
 
-HOST OBJECTS
+MASS CONFIGURATION
 
-Each host object returned by the config task is independently passed to the
-second task, which is the work task ('deploy' in the above example). The host
-object is always passed to the work task's function as the first
+The controllers() method exported by node-control takes a single controller
+object as a prototype and multiplies it by an array of addresses to create an
+array of controller objects that all prototypically inherit from the same
+controller prototype:
+
+task('mycluster', 'Config for my cluster', function () {
+    var shared = Object.create(control.controller), // Extend base prototype
+        addresses = [ 'a.domain.com',
+                      'b.domain.com',
+                      'c.domain.com' ];
+    shared.user = 'mylogin'; // Extend shared prototype
+    return control.controllers(addresses, shared);  // All extend shared
+});
+
+
+Alternatively, configure each machine with JSON notation and pass that into
+controllers():
+
+task('mycluster', 'Config for my cluster', function () {
+    var addresses = {
+        'a.domain.com': {
+            user: 'dbuser',
+            sshOptions: ['-p 44']
+        },
+        'b.domain.com': {
+            user: 'appuser',
+            ips: [
+                '10.2.136.18',
+                '10.2.136.19',
+                '10.2.136.20',
+                '10.2.136.21',
+                '10.2.136.22' 
+            ]
+        },
+        'c.domain.com': {
+            user: 'appuser',
+            ips: [ 
+                '10.2.136.23',
+                '10.2.136.24',
+                '10.2.136.25',
+                '10.2.136.26',
+                '10.2.136.27' 
+            ]
+        }
+    };
+    return control.controllers(addresses); // All extend control.controller
+});
+
+
+When using JSON notation, you can pass a shared prototype into controllers()
+just as with the array approach. controllers() will then return an array
+of controller objects that prototypically inherit from the shared prototype,
+each having controller-specific properties as defined in the JSON notation.
+
+See examples/mycontroller.js for examples of different configuration approaches.
+
+
+
+CONTROLLER OBJECTS
+
+node-control provides a base controller prototype as control.controller, which
+all controllers must extend. To create controllers, extend this prototype and
+assign it a DNS or IP address :
+
+controller = Object.create(control.controller)
+controller.address = 'a.domain.com'
+
+
+Or use the controllers() method as described in MASS CONFIGURATION.
+
+When using the tasks system, each controller object returned by the config task
+is independently passed to the second task, which is the work task. The
+controller object is always passed to the work task's function as the first
 argument:
 
-task('date', 'Get date', function (host) {
+task('date', 'Get date', function (controller) {
 
 
-The host object allows access to all the properties defined in the config and
-also provides the ssh() and scp() methods for communicating with the remote 
-machine. 
+The controller object provides access to all the properties defined on it in
+the config task.
+
+The base controller prototype provides ssh() and scp() methods for
+communicating with a controller's  assigned remote machine. 
 
 The ssh() method takes one argument - the command to be executed on the
 remote machine. The scp method takes two arguments - the local file path and the
@@ -173,24 +230,25 @@ remote file path.
 Both ssh() and scp() methods are asynchronous and can additionally take a
 callback function that is executed once the ssh or scp operation is complete.
 This guarantees that the first operation completes before the next one begins
-on that host:
+on that machine:
 
-    host.scp(release, remoteDir, function () {
-        host.ssh('tar xzvf ' + remotePath + ' -C ' + remoteDir, function () {
+    controller.scp(release, remoteDir, function () {
+        controller.ssh('tar xzvf ' + remotePath + ' -C ' + remoteDir, 
+                function () {
 
 
 You can chain callbacks as far as necessary.
 
 If a command returns a non-zero exit code, the scp() and ssh() methods will log
 the exit and exit code, but will not call the callback, ending any further
-operations on that host. This avoids doing further harm where a callback may
+operations on that machine. This avoids doing further harm where a callback may
 assume a successful execution of a previous command. However, you can specify
 an exit callback that will receive the exit code if a non-zero exit occurs:
 
 function callback() { ... }
 function exitCallback(code) { ... }
 
-host.ssh('date', callback, exitCallback);
+controller.ssh('date', callback, exitCallback);
 
 
 You can make both callbacks the same callback function if you want to check the
@@ -203,35 +261,39 @@ ARGUMENTS
 Arguments on the command line after the name of the work task become arguments
 to the work task's function:
 
-task('deploy', 'Deploy my app', function (host, release) {
+task('deploy', 'Deploy my app', function (controller, release) {
 
 
 This command:
 
-node mycontroller.js stage deploy ~/myapp/releases/myapp-1.0.tgz
+node controls.js stage deploy ~/myapp/releases/myapp-1.0.tgz
 
 
-Results in release = '~/myapp/releases/myapp-1.0.tgz'.
+Results in: 
+
+release = '~/myapp/releases/myapp-1.0.tgz'
+
 
 More than one argument is possible:
 
-task('deploy', 'Deploy my app', function (host, release, tag) {
+task('deploy', 'Deploy my app', function (controller, release, tag) {
 
 
 
-BEGIN
+BEGIN()
 
 To execute the tasks using a tasks file, use the begin() method at the
 bottom of the tasks file:
 
-var control = require('./node-control');
+var control = require('control');
 ... // Define tasks
 control.begin();
 
 begin() calls the first (config) task identified on the command line to get the
-array of host objects, then calls the second (work) task with each of the host
-objects. From that point, everything happens asynchronously as all hosts work
-their way through the work task.
+array of controller objects, then calls the second (work) task with each of the
+controller objects. From that point, everything happens asynchronously as all
+controllers work their way through the work task. If you run a control script
+and nothing happens, make sure to check if the script calls begin().
 
 
 
@@ -240,24 +302,24 @@ PERFORMING MULTIPLE TASKS
 A task can call other tasks using perform() and optionally pass arguments to
 them:
 
-var perform = require('./node-control').perform;
+var perform = require('control').perform;
 ...
-task('mytask', 'My task description', function (host, argument) {
-    perform('anothertask', host, argument);
+task('mytask', 'My task description', function (controller, argument) {
+    perform('anothertask', controller, argument);
 
 
-perform() requires only the task name and the host object. Arguments are
+perform() requires only the task name and the controller object. Arguments are
 optional. If the other task supports it, optionally pass a callback function as
 one of the arguments:
 
-    perform('anothertask', host, function () {
+    perform('anothertask', controller, function () {
 
 
 Tasks that support asynchronous performance should call the callback function
 when done doing their own work. For example:
 
-task('anothertask', 'My other task description', function (host, callback) {
-    host.ssh('date', function () {
+task('anothertask', 'My other task', function (controller, callback) {
+    controller.ssh('date', function () {
         if (callback) {
             callback();
         }
@@ -273,7 +335,7 @@ LIST TASKS
 
 To list all defined tasks with descriptions:
 
-node mycontroller.js mycluster list
+node controls.js mycluster list
 
 
 
@@ -282,9 +344,9 @@ NAMESPACES
 Use a colon, dash, or similar convention when naming if you want to group tasks
 by name. For example:
 
-task('bootstrap:tools', 'Bootstrap tools', function (host) { 
+task('bootstrap:tools', 'Bootstrap tools', function (controller) { 
 ...
-task('bootstrap:compilers', 'Bootstrap compilers', function (host) { 
+task('bootstrap:compilers', 'Bootstrap compilers', function (controller) { 
 
 
 
@@ -292,7 +354,7 @@ SUDO
 
 To use sudo, just include sudo as part of your command:
 
-    host.ssh('sudo date');
+controller.ssh('sudo date');
 
 
 This requires that sudo be installed on the remote machine and have requisite
@@ -302,36 +364,36 @@ permissions setup.
 
 ROLES
 
-Some other frameworks like Vlad and Capistrano provide the notion of roles for
-different hosts. node-control does not employ a separate roles construct. Since
-hosts can have any properties defined on them in a config task, a possible
-pattern for roles if needed:
+Some other frameworks like Capistrano provide the notion of roles for different
+machines. node-control does not employ a separate roles construct. Since
+controllers can have any properties defined on them in a config task, a
+possible pattern for roles if needed:
 
 task('mycluster', 'Config for my cluster', function () {
-    var appConfig, dbConfig, dbs, apps;
+    var dbs, apps;
 
-    dbConfig = {
+    dbs = {
         user: 'dbuser',
         role: 'db'
     };
 
-    dbs = control.hosts(dbConfig, ['db1.mydomain.com', 'db2.mydomain.com']);
-
-    appConfig = {
+    apps = {
         user: 'appuser',
         role: 'app'
     };
-    apps = control.hosts(appConfig, ['app1.mydomain.com', 'app2.mydomain.com']);
+
+    dbs = control.controllers(['db1.domain.com', 'db2.domain.com'], dbs);
+    apps = control.controllers(['app1.domain.com', 'app2.domain.com'], apps);
 
     return dbs.concat(apps); 
 });
 
-task('deploy', 'Deploy my app', function (host, release) {
-    if (host.role === 'db') {
+task('deploy', 'Deploy my system', function (controller, release) {
+    if (controller.role === 'db') {
         // Do db deploy work
     }
 
-    if (host.role === 'app') {
+    if (controller.role === 'app') {
         // Do app deploy work
     }
 });
@@ -341,39 +403,39 @@ task('deploy', 'Deploy my app', function (host, release) {
 LOGS
 
 All commands sent and responses received are logged with timestamps (from the
-control machine's clock). By default, logging goes to a hosts.log file in the
+control machine's clock). By default, logging goes to a control.log file in the
 working directory of the node process. However, you can override this in your
 control script:
 
 task('mycluster', 'Config for my cluster', function () {
-    var config, addresses;
-    config = {
+    var shared, addresses;
+    shared = {
         user: 'mylogin',
-        log: '~/mycluster-control.log'
+        logPath: '~/mycluster-control.log'
     };
-    addresses = [ 'myhost1.mydomain.com',
-                  'myhost2.mydomain.com',
-                  'myhost3.mydomain.com' ];
-    return control.hosts(config, addresses); 
+    addresses = [ 'a.domain.com',
+                  'b.domain.com',
+                  'c.domain.com' ];
+    return control.controllers(addresses, shared); 
 });
 
 
-Since each host gets its own log property, every host could conceivably have
-its own log fie. However, every line in the log file has a prefix that includes
-the host address so, for example: 
+Since each controller gets its own log property, every controller could
+conceivably have its own log fie. However, every line in the log file has a
+prefix that includes the controller's address so, for example: 
 
-grep myhost1.mydomain.com hosts.log | less
+grep a.domain.com control.log | less
 
 
 Would allow paging the log and seeing only lines pertaining to
-myhost1.mydomain.com.
+a.domain.com.
 
 
 If you send something you do not want to get logged (like a password) in a
 command, use the log mask:
 
-host.logMask = secret;
-host.ssh('echo ' + secret + ' > file.txt');
+controller.logMask = secret;
+controller.ssh('echo ' + secret + ' > file.txt');
 
 
 The console and command log file will show the masked text as asterisks instead
@@ -383,11 +445,11 @@ of the actual text.
 
 SSH
 
-To avoid repeatedly entering passwords across possibly many hosts, use standard
-ssh keypair authentication. 
+To avoid repeatedly entering passwords across possibly many machines, use
+standard ssh keypair authentication. 
 
-Each host.ssh() call requires a new connection to the host. To configure ssh to
-reuse a single connection, place this:
+Each controller.ssh() call requires a new connection to the remote machine. To
+configure ssh to reuse a single connection, place this:
 
 Host *
 ControlMaster auto 
@@ -400,18 +462,13 @@ In your ssh config file (create if it does not exist):
 
 
 To pass options to the ssh command when using ssh(), add the option or options
-as an array to the sshOptions property of the config, or modify the sshOptions
-property of the host on the fly:
+as an array to the sshOptions property of the controller or controllers'
+prototype:
 
-    // Config task
     config = {
         user: 'mylogin',
         sshOptions: [ '-2', '-p 44' ]
     };
-
-    // Work task
-    host.sshOptions.push('-v');
-
 
 Use scpOptions in the same manner for scp().
 
@@ -420,72 +477,71 @@ Use scpOptions in the same manner for scp().
 CONFIG TASK COMMAND LINE ARGUMENTS REWRITING
 
 Config tasks receive a reference to the array of remaining arguments on the
-command line after the config task name is removed. This allows config tasks
-to rewrite the command line arguments other than the config task name. Example:
+command line after the config task name is removed. Therefore, config tasks
+can rewrite the command line arguments other than the config task name. Example:
 
 function configure(addresses) {
-    var config;
-    config = {
+    var shared;
+    shared = {
         user: 'mylogin'
     };
-    return control.hosts(config, addresses); 
+    return control.controllers(addresses, shared); 
 }
 
 task('mycluster', 'Config for my cluster', function () {
-    var addresses = [ 'a.mydomain.com',
-                      'b.mydomain.com',
-                      'c.mydomain.com' ];
+    var addresses = [ 'a.domain.com',
+                      'b.domain.com',
+                      'c.domain.com' ];
     return configure(addresses); 
 });
 
-task('myhost', 'Config for a single host from command line', function (args) {
+task('mymachine', 'Config for one machine from command line', function (args) {
     return configure([args.shift()]); // From command line arguments rewriting
 });
 
 
+
 With this set of config tasks, if there is an ad hoc need to run certain tasks
 against a single machine in the cluster, but otherwise have identical
-configuration as when run as part of the cluster, the host name can be
+configuration as when run as part of the cluster, the machine address can be
 specified on the command line:
 
-node mycontroller.js myhost b.mydomain.com date a
+node controls.js mymachine b.domain.com mytask x
 
 
-In that case, the myhost task receives as args:
+In that case, the mymachine config task receives as args:
 
-['b.mydomain.com', 'date', 'a']
+['b.domain.com', 'mytask', 'x']
 
 
-This is generally not necessary since you can edit the config file at any time,
-but is available if config tasks need to have command line arguments or rewrite
-the work task name and its arguments on the fly.
+This is generally not necessary since you can edit the config task in the
+control file at any time, but is available if config tasks need to have command
+line arguments or rewrite the work task name and its arguments on the fly.
 
 
 
 QUICK EXAMPLE WITHOUT TASKS
 
 You can create scripts to run individually instead of through the tasks system
-by using hosts() to create an array of hosts objects and using the hosts
-objects directly:
+by using controllers() to create an array of controller objects and then using
+the controller objects directly:
 
 var control = require('../'),
-    config = {
-        user: 'mylogin'
-    },
-    addresses = [ 'a.mydomain.com',
-                  'b.mydomain.com',
-                  'c.mydomain.com' ],
-    hosts = control.hosts(config, addresses),
-    i, l, host;
+    shared = Object.create(control.controller),
+    i, l, controller, controllers;
 
-for (i = 0, l = hosts.length; i < l; i += 1) {
-    host = hosts[i];
-    host.ssh('date');
+shared.user = process.env.USER;
+controllers = control.controllers(['a.domain.com', 'b.domain.com'], shared);
+
+for (i = 0, l = controllers.length; i < l; i += 1) {
+    controller = controllers[i];
+    controller.ssh('date');
 }
 
-If saved in a file named 'mycontroller.js', execute with:
 
-node mycontroller.js
+If saved in a file named 'controls.js', run with:
+
+node controls.js
 
 
 
