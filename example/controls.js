@@ -1,9 +1,16 @@
 /*global require, process, console */
 
-// Example with some advanced usage (advanced configuration, error
-// callbacks, scpOptions, and config task command line arguments rewriting)
-// using localhost as a 'remote' machine and this script recursively to
-// simulate exit code returns on the 'remote' machine.
+// Example with some advanced usage:
+//   advanced configuration
+//   error callbacks
+//   scpOptions 
+//   config task command line arguments rewriting
+//   custom listeners
+//   stdin writing 
+//
+// Uses localhost as a 'remote' machine and this script recursively to simulate
+// exit code returns, stderr and stout output, and stdin reading on the
+// 'remote' machine.
 
 // Run like:
 // node mycontroller.js myhost test 0 
@@ -12,6 +19,8 @@
 // node mycontroller.js mycluster test 64 
 // node mycontroller.js mycluster scp
 // node mycontroller.js mycluster clean
+// node mycontroller.js myhost listeners
+// node mycontroller.js myhost stdin
 // node mycontroller.js myclusterarray test 0
 // node mycontroller.js myclusterjson test 0
 // node mycontroller.js mymachine 127.0.0.1 test 0 
@@ -90,7 +99,7 @@ task('mymachine', 'Config for single host from command line', function (args) {
 
 function doTest(controller, code, callback, exitCallback) {
     code = code || 0; 
-    controller.ssh('node ' + script + ' mycluster arbexit ' + code,
+    controller.ssh('node ' + script + ' myhost arbexit ' + code,
             callback, exitCallback);
 }
 
@@ -116,7 +125,8 @@ task('test', 'Test task', function (controller, code) {
 // Task that will run on 'remote' to exit with an arbitrary code
 task('arbexit', 'Arbitrary exit', function (controller, code) {
     code = code || 0; 
-    console.log('  Exiting with code ' + code);
+    console.log('  (stdout) Exiting with code ' + code);
+    console.error('  (stderr) Exiting with code ' + code);
     process.exit(code);
 });
 
@@ -126,6 +136,73 @@ task('scp', 'Test scp options', function (controller) {
 
 task('clean', 'Remove file transferred in scp testing', function (controller) {
     controller.ssh('rm ' + scpTest); 
+});
+
+task('listeners', 'Custom listener example', function (controller) {
+    var stdout, stderr;
+
+    controller.stdout.on('data', function (data) {
+        console.log('  Custom stdout listerner called for ' + 
+                controller.address);
+        
+        stdout = stdout || '';
+        stdout = stdout += data.toString();
+    });
+
+    controller.stderr.on('data', function (data) {
+        console.log('  Custom stderr listerner called for ' + 
+                controller.address);
+        stderr = stderr || '';
+        stderr = stderr += data.toString();
+    });
+
+    doTest(controller, 0, function () {
+        console.log('  Response gathered by custom stdout listener for ' + 
+                controller.id() + ': \n' + stdout);
+        console.log('  Response gatehered by custom stderr listener for ' + 
+                controller.id() + ': \n' + stderr);
+        doTest(controller, 0); // Custom listeners are now cleared
+    });
+});
+
+task('echo', 'Stdin to stdout echo until "end"', function (controller) {
+    console.log('Enter data to echo ("end" to stop echoing): ');
+    process.stdin.resume();
+
+    process.stdin.on('data', function (chunk) {
+        process.stdout.write(chunk);
+        chunk = chunk.toString();
+        if (chunk.match('end')) {
+            process.stdin.pause();
+        }
+    });
+});
+
+task('stdin', 'Test controller stdin usage', function (controller) {
+    var stdout;
+
+    controller.stdout.on('data', function (chunk) {
+        chunk = chunk.toString();
+        if (chunk.match('^Enter data')) {
+            controller.stdin.write('hello\n');
+            controller.stdin.write('end');
+        }
+    });
+
+    controller.ssh('node ' + script + ' myhost echo');
+});
+
+task('ondate', 'Different logic paths based on date', function (controller) {
+    var datestring = '';
+
+    controller.stdout.on('data', function (chunk) {
+        datestring += chunk.toString();
+    });
+
+    controller.ssh('date', function () {
+        console.log('  Date string is ' + datestring);
+        // Further logic dependent on value of datestring
+    });
 });
 
 control.begin();
