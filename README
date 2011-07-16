@@ -294,7 +294,7 @@ exit code and handle both zero and non-zero exits within a single callback.
 
 
 
-CUSTOM LISTENERS
+CUSTOM STDOUT & STDERR LISTENERS
 
 When running a command with ssh() on a remote device, controller objects listen
 to the stdout and stderr of the process running on the remote device through
@@ -321,7 +321,7 @@ stdout.on() pattern looks unfamiliar. Controllers also provide a stderr.on()
 for attaching custom listeners to the stderr stream.
 
 You can respond to prompts and errors as they happen in the remote process
-through the remote process stdin stream similar to expect. An example of
+through the remote process stdin stream, similar to expect. An example of
 responding to a prompt through the stdin of the remote process:
 
 task('stdin', 'Test controller stdin usage', function (controller) {
@@ -341,7 +341,7 @@ task('stdin', 'Test controller stdin usage', function (controller) {
 The controller only uses custom listeners for the next ssh() or scp() call.
 Further ssh() or scp() calls will not attach the custom listener unless it is
 reattached via controller.stdout.on() or controller.stderr.on() before the next
-call. This avoids unanticipated usage of one-off listeners such as filling the
+call. This avoids unanticipated usage of one-off listeners, such as filling the
 datestring variable in the first example with the output of every subsequent
 ssh() command executed by the controller.
 
@@ -627,6 +627,12 @@ node controls.js
 
 See example/taskless.js for a working example you can run against your local
 machine if running a local sshd.
+
+
+
+CONTRIBUTORS
+
+* David Pratt (https://github.com/fairwinds)
 
 
 
