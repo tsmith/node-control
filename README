@@ -52,9 +52,9 @@ the remote machine is printed to the console. Example console output:
 
  Performing mycluster
  Performing date for a.domain.com
-a.domain.com:mylogin:ssh: date
+a.domain.com:alogin:ssh: date
  Performing date for b.domain.com
-b.domain.com:mylogin:ssh: date
+b.domain.com:blogin:ssh: date
 a.domain.com:stdout: Sun Jul 18 13:30:50 UTC 2010
 b.domain.com:stdout: Sun Jul 18 13:30:51 UTC 2010
 a.domain.com:exit: 0
