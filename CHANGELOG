@@ -1,3 +1,6 @@
+0.2.2
+- Improve logging to create new fs.WriteStream only on controller logPath change
+
 0.2.1
 - Add remote process stdout/stderr custom listener support for ssh() and scp()
 - Add ability to write to remote process stdin
@@ -28,7 +31,7 @@
 0.1.6
 - Document sshOptions and reimplement to allow setting in config or host object
 - Remove undocumented host() method for setting up a single host from config
-- Add engines specfication to package.json for node >=0.1.99
+- Add engines specification to package.json for node >=0.1.99
 
 0.1.5
 - Remove errant console.log statement in ssh command

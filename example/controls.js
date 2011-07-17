@@ -13,24 +13,24 @@
 // 'remote' machine.
 
 // Run like:
-// node mycontroller.js myhost test 0 
-// node mycontroller.js myhost test 64 
-// node mycontroller.js mycluster test 0 
-// node mycontroller.js mycluster test 64 
-// node mycontroller.js mycluster scp
-// node mycontroller.js mycluster clean
-// node mycontroller.js myhost listeners
-// node mycontroller.js myhost stdin
-// node mycontroller.js myclusterarray test 0
-// node mycontroller.js myclusterjson test 0
-// node mycontroller.js mymachine 127.0.0.1 test 0 
+// node controls.js myhost test 0 
+// node controls.js myhost test 64 
+// node controls.js mycluster test 0 
+// node controls.js mycluster test 64 
+// node controls.js mycluster scp
+// node controls.js mycluster clean
+// node controls.js myhost listeners
+// node controls.js myhost stdin
+// node controls.js myclusterarray test 0
+// node controls.js myclusterjson test 0
+// node controls.js mymachine 127.0.0.1 test 0 
 
 var control = require('../'),
     task = control.task,
     script = process.argv[1],
     scpTest = 'controlScpTest';
 
-task('mycluster', 'Prototype config for cluster of two or more', function () {
+task('mycluster', 'Prototype config for cluster of two', function () {
     var controllers = [], 
         local, controller; 
 
@@ -54,7 +54,7 @@ task('mycluster', 'Prototype config for cluster of two or more', function () {
     return controllers;
 });
 
-task('myclusterarray', 'Array config for cluster of two or more', function () {
+task('myclusterarray', 'Array config for cluster of two', function () {
     var controller = Object.create(control.controller);
     controller.user = process.env.USER;
     controller.scpOptions = ['-v'];
@@ -62,7 +62,7 @@ task('myclusterarray', 'Array config for cluster of two or more', function () {
     return control.controllers(['localhost', '127.0.0.1'], controller);
 });
 
-task('myclusterjson', 'JSON Config for my cluster of two or more', function () {
+task('myclusterjson', 'JSON Config for my cluster of two', function () {
 
     // Demonstrates JSON configuration usage
     var addresses = {
@@ -95,6 +95,23 @@ task('myhost', 'Config for cluster of one', function () {
 
 task('mymachine', 'Config for single host from command line', function (args) {
     return configure([args.shift()]); // From command line arguments rewriting
+});
+
+// note that many sshd configs default to a low number of allowed connections
+// run like: node controls.js many 5 test 
+task('many', 'Config n controllers', function (args) {
+    var controllers = [], shared, controller, i, l = args.shift();
+
+    shared = Object.create(control.controller);
+    shared.user = process.env.USER;
+    
+    for (i = 0; i < l; i += 1) {
+        controller = Object.create(shared);
+        controller.address = 'localhost';
+        controllers.push(controller);
+    }
+
+    return controllers;
 });
 
 function doTest(controller, code, callback, exitCallback) {
@@ -202,6 +219,14 @@ task('ondate', 'Different logic paths based on date', function (controller) {
     controller.ssh('date', function () {
         console.log('  Date string is ' + datestring);
         // Further logic dependent on value of datestring
+    });
+});
+
+task('logchange', 'Call date two times, changing log path before second call', 
+        function (controller) {
+    controller.ssh('date', function () {
+        controller.logPath = 'alt.log';
+        controller.ssh('date -r 1');
     });
 });
 
