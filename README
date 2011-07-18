@@ -13,9 +13,9 @@ Remote machines simply need a standard sshd daemon.
 QUICK EXAMPLE
 
 If you want to control remote machines from individual scripts without the
-tasks system, see QUICK EXAMPLE WITHOUT TASKS. Otherwise, to get the
-current date from the two machines listed in the 'mycluster' config task as
-the 'mylogin' user with a single command:
+tasks system, see QUICK EXAMPLE WITHOUT TASKS. Otherwise, to get the current
+date from the two machines listed in the 'mycluster' config with a single
+command:
 
 var control = require('control'),
     task = control.task;
@@ -146,7 +146,8 @@ task('mycluster', 'Config for my cluster', function () {
 controllers() will return an array of controllers that prototypically inherit
 from the shared prototype instead of the base prototype, each having
 controller-specific properties as defined in the JSON notation. In this case,
-both controllers will effectively have sshOptions = ['-p 44'].
+both controllers will effectively have sshOptions = ['-p 44'], but different
+user names.
 
 If all machines in your cluster have the same properties, can you pass an array
 of addresses as the first argument to controllers(). For example, if all the
@@ -164,7 +165,7 @@ task('mycluster', 'Config for my cluster', function () {
 });
 
 
-You can also build up your list of controllers without the use of
+Alternatively, you can build up your list of controllers without the use of
 controllers():
 
 task('mycluster', 'Config for my cluster', function () {
