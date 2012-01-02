@@ -403,7 +403,7 @@ task('bootstrap:compilers', 'Bootstrap compilers', function (controller) {
 
 SUDO
 
-To use sudo, just include sudo as part of your command:
+To use sudo, include sudo as part of your command:
 
 controller.ssh('sudo date');
 
@@ -548,7 +548,6 @@ task('mycluster', 'Config for my cluster', function () {
 task('mymachine', 'Config for one machine from command line', function (args) {
     return configure([args.shift()]); // From command line arguments rewriting
 });
-
 
 
 With this set of config tasks, if there is an ad hoc need to run certain tasks
