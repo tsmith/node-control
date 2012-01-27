@@ -4,5 +4,5 @@
   "author" : "Thomas Smith <node@thomassmith.com>",
   "repository" : { "type" : "git" , "url" : "git://github.com/tsmith/node-control.git" },
   "main" : "./lib",
-  "engines" : { "node" : ">=0.1.99" }
+  "engines" : { "node" : ">=0.6.0" }
 }
