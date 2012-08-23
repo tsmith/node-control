@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/tsmith/node-control.png)](http://travis-ci.org/tsmith/node-control)
 DESCRIPTION
 
 Define tasks for system administration or code deployment, then execute them on
