@@ -647,3 +647,7 @@ machine if running a local sshd.
 ## Feedback
 
 Welcome at node@thomassmith.com or the Node mailing list.
+
+## ToDo
+
+Option: Use pure JavaScript-Implementation of SSH (https://github.com/mscdex/ssh2)
