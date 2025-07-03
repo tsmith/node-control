@@ -1,8 +1,0 @@
-{ "name" : "control",
-  "description" : "Scripted asynchronous control of remote machines in parallel via ssh",
-  "version" : "0.2.3",
-  "author" : "Thomas Smith <node@thomassmith.com>",
-  "repository" : { "type" : "git" , "url" : "git://github.com/tsmith/node-control.git" },
-  "main" : "./lib",
-  "engines" : { "node" : ">=0.6.0" }
-}
